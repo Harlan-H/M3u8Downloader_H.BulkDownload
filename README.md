@@ -1,0 +1,2 @@
+# M3u8Downloader_H.BulkDownload
+M3u8Downloader_H的批量下载插件
