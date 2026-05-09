@@ -1,0 +1,161 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:vm="using:M3u8Downloader_H.BulkDownload.ViewModels"
+             xmlns:model="using:M3u8Downloader_H.BulkDownload.Models"
+             xmlns:behaviors="using:M3u8Downloader_H.BulkDownload.Behaviors"
+             x:DataType="vm:MainWindowViewModel"
+             x:Class="M3u8Downloader_H.BulkDownload.MainWindowView">
+
+   <Grid RowDefinitions="auto, auto,*,auto">
+            <Grid Margin="8" Grid.ColumnDefinitions="*,auto,auto">
+                <TextBox Theme="{DynamicResource CompactTextBox}"
+                    Grid.Column="0"  
+                    IsReadOnly="True"
+                    ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                    Margin="3"
+                    Name="filePathTextBox"
+                    ToolTip.Tip="打开文件"
+                    FontSize="16"
+                    Text="{Binding TxtFilePath}" Watermark="txt文件路径,点击右边的添加文件图标"
+                    Classes="clearButton" AcceptsReturn="True">
+                </TextBox>
+                <Button Grid.Column="1" 
+                        Padding="5"
+                        Cursor="Hand"
+                        IsTabStop="True"
+                        Theme="{DynamicResource MaterialFlatButton}" Foreground="{DynamicResource MaterialPrimaryMidBrush}">
+                    <icons:MaterialIcon
+                                Width="24"
+                                Height="24"
+                                Kind="FilePlusOutline" />
+                        <Interaction.Behaviors>
+                             <behaviors:OpenFileDialogBehavior IsFile="true" FileTypeFilter="txt文件|*.txt" AttachedTextBox="{Binding #filePathTextBox}" />
+                        </Interaction.Behaviors>
+                </Button>
+
+                <Button Grid.Column="2"
+                    Command="{Binding StartParseCommand}"
+                    Foreground="{DynamicResource MaterialPrimaryMidBrush}"
+                    Theme="{DynamicResource MaterialFlatButton}"
+                    IsDefault="True"
+                    Margin="0,6,6,6"
+                    ToolTip.Tip="开始处理"                  
+                    Padding="4">
+                    <icons:MaterialIcon
+                                Width="24"
+                                Height="24"
+                                Kind="CheckUnderline" />
+                </Button>
+            </Grid>
+        <Border Grid.Row="1" BorderThickness="1" Margin="5" Padding="5" BorderBrush="{StaticResource MaterialPrimaryMidBrush}">
+			<Grid Grid.ColumnDefinitions="*,auto" >
+                <Grid RowDefinitions="auto,auto" ColumnDefinitions="auto,*">
+                    <TextBlock FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" Text="分隔符" />
+				    <TextBox  FontSize="20"  Grid.Column="1" Theme="{DynamicResource CompactTextBox}" Text="{Binding Separator}" >
+                        <ToolTip.Tip>
+                            <TextBlock>
+								<Run Text="分隔符默认是----(4个减号)" />
+                                <LineBreak/>
+                                <Run Text="可以换成任何你需要的分隔符，但是不要用 $ 分割号否则会出现错误" /> 
+                            </TextBlock>
+                        </ToolTip.Tip>
+                    </TextBox>
+                    <TextBlock  FontSize="20"  VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" Grid.Column="0" Grid.Row="1" Text="模板" />
+                    <TextBox FontSize="20"  Grid.Column="1"  Grid.Row="1" Theme="{DynamicResource CompactTextBox}" Text="{Binding Template}" >
+						<ToolTip.Tip>
+                            <TextBlock>
+								<Run Text="模板参数：" />
+                                <LineBreak />
+                                <Run Text="$url : 请求地址" />
+                                <LineBreak />
+                                <Run Text="$title : 标题" />
+                                <LineBreak />
+                                <Run Text="$key : 密钥(base64编码后的)" />
+                                <LineBreak />
+                                <Run Text="$method : 请求地址" />
+                                <LineBreak />
+                                <Run Text="$iv : iv" />
+                                <LineBreak />
+                                <Run Text="可以按照你的格式修改模板参数的位置，当前假设你的分隔符就是----(4个减号)，如果你换成了其他的需要替换模板参数中的----(4个减号)" />
+                                <LineBreak />
+                                <Run Text="例如你的文件里的内容是www.xxx.com/index.m3u8----一个名字----AES-128----假设是key----假设是iv" />
+                                <LineBreak />
+                                <Run Text="那就是当前默认的模板参数" />
+                                <LineBreak />
+                                <Run Text="或者的文件内容是:一个名字----www.xxx.com/index.m3u8" />
+                                <LineBreak />
+                                <Run Text="模板参数就是： $title----$url" />
+                            </TextBlock>
+                        </ToolTip.Tip>
+                    </TextBox> 
+                </Grid>
+                <Button Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Command="{Binding SaveTemplateCommand}"
+                    Foreground="{DynamicResource MaterialPrimaryMidBrush}"
+                    Theme="{DynamicResource MaterialFlatButton}"
+                    Margin="0,6,6,6">
+					<icons:MaterialIcon
+                                Width="24"
+                                Height="24"
+                                Kind="ContentSaveCog" />
+                </Button>
+            </Grid>
+        </Border>
+        <ListBox  Grid.Row="2" 
+            ItemsSource="{Binding DownloadInfo}"
+            SelectedItems="{Binding SelectedDownloads}"
+            SelectionMode="Multiple,Toggle">
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="8,4,8,4" />
+                </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="model:M3u8DownloadInfo">
+                    <StackPanel  Margin="8,0,0,0"
+                                 Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <StackPanel.Styles>
+							<Style Selector="TextBlock">
+								<Setter Property="FontSize" Value="18" />
+                                <Setter Property="Margin" Value="8,0,0,0" />
+                            </Style>
+                        </StackPanel.Styles>
+                        <icons:MaterialIcon
+                                Width="18"
+                                Height="18"
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"
+                                Kind="Check"
+                                IsVisible="{Binding $parent[ListBoxItem].IsSelected}" />
+                            <TextBlock Text="{Binding Url}"  TextTrimming="CharacterEllipsis"  />
+                            <TextBlock Text="{Binding Title}"  TextTrimming="CharacterEllipsis"  />
+                            <TextBlock  Text="{Binding Method}"  />
+                            <TextBlock Text="{Binding Key}"  />
+                            <TextBlock Text="{Binding Iv}"   />
+                    </StackPanel>
+                        
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" >
+                <Button Command="{Binding ConfirmCommand}"  
+                        IsDefault="True"
+                        Margin="8" >
+                    <Button.Content>
+                        <TextBlock>
+                            <Run Text="下载"/>
+                            <Run Text="(" /><Run Text="{Binding SelectedDownloads.Count,FallbackValue=0,Mode=OneWay}" /><Run Text=")"/>
+                        </TextBlock>
+                    </Button.Content>
+                </Button>
+                <Button Margin="8" Content="取消" IsCancel="True" Command="{Binding CancelCommand}"/>
+        </StackPanel>
+
+       </Grid>
+</UserControl>

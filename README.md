@@ -1,2 +1,2 @@
 # M3u8Downloader_H.BulkDownload
-M3u8Downloader_H的批量下载插件
+M3u8Downloader_H的批量下载插件，此批量下载插件主要的目的是为了可以实现更灵活的批量下载方案，不再受到以往的固定的格式限制。可以更灵活的调整下载规则，以实现更强的兼容

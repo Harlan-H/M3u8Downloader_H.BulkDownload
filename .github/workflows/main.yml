@@ -1,0 +1,110 @@
+name: main
+
+on: 
+  push:
+    branches:
+      - master
+    tags:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号'
+        required: true    
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    permissions:
+      contents: read
+  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: >
+          dotnet build M3u8Downloader_H.BulkDownload 
+          -c Release 
+          -o M3u8Downloader_H.BulkDownload/bin/Publish 
+          -p:Version=${{ github.ref_type == 'tag' && github.ref_name || format('999.9.9-ci-{0}', github.sha) }}
+
+      - name: Upload artifacts 
+        uses: actions/upload-artifact@v6
+        with:
+          name: M3u8Downloader_H.BulkDownload
+          path: M3u8Downloader_H.BulkDownload/bin/Publish
+          if-no-files-found: error
+
+  Release:
+    if: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
+
+    needs : build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts normal
+        uses: actions/download-artifact@v4
+        with:
+          name: M3u8Downloader_H.BulkDownload
+          path: M3u8Downloader_H.BulkDownload
+
+      - name: Generate Manifest 
+        run: |
+          curl -L -o manifesttool.zip https://github.com/Harlan-H/M3u8Downloader_H.Plugins/releases/latest/download/M3u8Downloader_H.ManifestTool-linux-x64.zip
+          unzip manifesttool.zip 
+          ./M3u8Downloader_H.ManifestTool \
+            M3u8Downloader_H.BulkDownload/M3u8Downloader_H.BulkDownload.dll \
+            https://github.com/${{ github.event.repository.full_name }}/releases/download/${{  github.ref_name || inputs.version }}/M3u8Downloader_H.BulkDownload.zip \
+            https://github.com/${{ github.event.repository.full_name }}
+
+          cp manifest.json M3u8Downloader_H.BulkDownload/
+
+      - name: Create package
+        working-directory: M3u8Downloader_H.BulkDownload/
+        run: zip -r ../M3u8Downloader_H.BulkDownload.zip .
+  
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release create ${{ github.ref_name || inputs.version }}
+          --repo ${{ github.event.repository.full_name }}
+          --title ${{ github.ref_name || inputs.version  }}
+          --generate-notes
+
+
+      - name: Upload release asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+            gh release upload ${{ github.ref_name || inputs.version }} 
+            M3u8Downloader_H.BulkDownload.zip 
+            --repo ${{ github.event.repository.full_name }}
+
+      - name: Send to the plugin repository
+        run: |
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            https://api.github.com/repos/Harlan-H/M3u8Downloader_H.Plugins/dispatches \
+            -d "$(jq -n \
+              --slurpfile manifest manifest.json \
+              '{event_type:"plugin_release", client_payload:$manifest[0]}')"
