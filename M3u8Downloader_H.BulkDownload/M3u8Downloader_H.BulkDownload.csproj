@@ -13,9 +13,9 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.11" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="M3u8Downloader_H.Abstractions" Version="1.0.7" />
+    <PackageReference Include="M3u8Downloader_H.Abstractions" Version="1.0.8" />
     <PackageReference Include="M3u8Downloader_H.Attributes" Version="1.0.7" />
-    <PackageReference Include="M3u8Downloader_H.Common" Version="1.0.1" />
+    <PackageReference Include="M3u8Downloader_H.Common" Version="1.0.2" />
     <PackageReference Include="Material.Icons.Avalonia" Version="3.0.0" />
     <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9.5" />
   </ItemGroup>

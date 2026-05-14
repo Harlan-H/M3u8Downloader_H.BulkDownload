@@ -108,7 +108,7 @@ namespace M3u8Downloader_H.BulkDownload.ViewModels
                     await Task.Delay(1);
                     SelectedDownloads.Remove(item);
                 }
-
+                windowContext.SnackbarMaranger.Notify($"已经开始下载{SelectedDownloads.Count},请点击左边基础查看");
             }
             catch (Exception ex)
             {
